@@ -1,0 +1,299 @@
+---
+title: "DSAF_Final_Project"
+author: "Srija Vakiti & Vaishnavi Asuri"
+date: "2022-12-08"
+output: html_document
+---
+
+##USING DATA ANALYSIS TO INFERENCE TRENDS AT SEPHORA
+
+**About the data source:**
+
+This data was scraped as API from **Sephora.com** and compiled by **Florencia Leoni**. We acquired this from her GitHub repository. The code for this can be found in the same repository under **src/Webscraping**.
+
+**(URL:https://github.com/fpleoni/i_feel_pretty/commit/0eb094749e6cbfc92e106d24574054039449e099)**
+data/skincare_df.csv
+
+One of the two major participants in the beauty retail market, along with Ulta, is **Sephora**, which also leads the industry in terms of online sales. The enormous investment they made in developing a digital beauty brand, which makes the online experience just as wonderful as the brick-and-mortar one, may be used to justify their leadership.
+
+
+**About the dataset:**
+
+Dataset license: CC0 1.0 Universal (CC0 1.0) - Public Domain Dedication 
+
+This dataset includes details on a variety of skincare products like:
+
+  + Brand Name
+  + Product Name
+  + Retail Price
+  + Number of reviews 
+  + Number of loves on Instagram
+  + Product Review Score (out of 5)
+  + Clean Product Status
+  + Product Category
+
+
+**PROBLEM STATEMENT**
+
+**To perform customer analysis and identify the trends at Sephora in terms of expenses, popularity and product effectiveness.**
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+#Importing the library required  
+library(readr)
+
+#storing the dataset in `df`
+df<- read.csv("C:/Users/asuri/Downloads/skincare_df.csv")
+
+#displaying the result
+head(df)
+```
+
+
+```{r}
+
+#Reading the column names and checking for the total number of unique brands in our dataset
+colnames(df)
+unique(data$brand)
+```
+
+
+
+```{r}
+#dropping the unnecessary column "X"
+data<-subset(df, select = -c(X) )
+
+head(data)
+
+```
+
+In this dataset, the product category is represented as a group of columns like face mask, toners, cleansers etc. We renamed the columns for easier understanding. The categorization of products is made through Boolean values. If a product fits into a certain category, that column is marked as 1 and all other category columns are marked as 0. 
+
+```{r}
+#renaming hte columns for the sake of comprehension
+colnames(data)[9] ="anti_aging"
+colnames(data)[10] ="bb_cc_creams"
+colnames(data)[11] ="bath_shower_prod"
+colnames(data)[12] ="beauty_supplements"
+colnames(data)[13] ="acne_blemish_treat"
+colnames(data)[14] ="blotting_paper"
+colnames(data)[15] ="lotions_oils"
+colnames(data)[16] ="cell_stretch_prod"
+colnames(data)[17] ="decollete_neck_creams"
+colnames(data)[18] ="exfoliators"
+colnames(data)[19] ="eye_creams"
+colnames(data)[20] ="eye_masks"
+colnames(data)[21] ="face_masks"
+colnames(data)[22] ="face_oils"
+colnames(data)[23] ="face_primers"
+colnames(data)[24] ="face_serums"
+colnames(data)[25] ="face_sunscreens"
+colnames(data)[26] ="cleansers"
+colnames(data)[27] ="facial_peels"
+colnames(data)[28] ="foundations"
+colnames(data)[29] ="hair_oils"
+colnames(data)[30] ="highlighters"
+colnames(data)[31] ="holistics"
+colnames(data)[32] ="mini_sizes"
+colnames(data)[33] ="mists_essences"
+colnames(data)[34] ="moisture_treat"
+colnames(data)[35] ="moisturizers"
+colnames(data)[36] ="night_creams"
+colnames(data)[37] ="setting_sprays_powders"
+colnames(data)[38] ="sheet_masks"
+colnames(data)[39] ="skincare"
+colnames(data)[40] ="tinted_moisturizers"
+colnames(data)[41] ="toners"
+colnames(data)[42] ="tools"
+colnames(data)[43] ="gift_sets"
+
+head(data)
+```
+
+
+**1. TOP 5 LOVED BRANDS AT SEPHORA**
+
+The column `n_of_loves` shows the number of likes a particular product received on Instagram. We first grouped all of the products in our dataset by `brand_name` and used the result to plot the top 5 most loved brands. 
+
+```{r}
+#loading the required libraries
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
+#plotting the number of loves against brands after grouping
+plot_1<-data %>% group_by(brand) %>% summarize(most_loved= max(n_of_loves)) %>% top_n(5) %>% ggplot(aes(x=reorder(brand,most_loved), y=most_loved, fill= brand)) + xlab("Number of loves")+ ylab("Brand Names") + ggtitle("Most loved brands of Sephora")+ geom_bar(stat = 'identity') + coord_flip()
+
+#displaying the result
+plot_1
+
+```
+It can be inferred from the graph (plot_1) that **"GLAMGLOW" is the most loved brand with over 200000 likes**. This is followed by "SEPHORA COLLECTION" and "IT Cosmetics. "Drunk Elephant" and "OLEHENRIKSEN" come at the last with likes that range between 150000 and 200000.
+
+
+**2. COSTLIEST BRANDS AT SEPHORA**
+
+The next trend to analyze was the most and least costliest brands at Sephora. This was done not through the actual price of the product but the price per ounce. For this, we plotted the product names against their price per ounce. 
+
+```{r}
+#
+plot_2<-data1%>%
+  group_by(brand)%>%
+  summarize(most_pricey= max(price_per_ounce))%>%
+  top_n(5) %>% 
+  ggplot(aes(x = brand, y = most_pricey, color=brand, size= most_pricey))+ 
+  ylab("Price of products(per ounce)") + 
+  xlab("Brand Names") + 
+  ggtitle("Costliest brands at Sephora")+
+  geom_point()
+
+plot_2
+```
+
+```{r}
+plot_3<-data1%>%
+  group_by(brand)%>%
+  summarize(cheapest= min(price_per_ounce))%>%
+  top_n(5) %>% 
+  ggplot(aes(x = brand, y = cheapest,color= brand,size= cheapest))+ 
+  ylab("Price of products(per ounce)") + 
+  xlab("Brand Names") + 
+  ggtitle("Cheapest brands at Sephora")+
+  geom_point() + scale_fill_gradient2(low="blue", high="red")
+
+plot_3
+```
+From both the graphs (plot_2 and plot_3) we can infer that the **most expensive brand at Sephora is "AMOREPACIFIC"** and **"rms beauty" is the least expensive brand**. 
+
+
+**3. MOST EFFECTIVE BRANDS AT SEPHORA**
+
+The next job was to determine the most effective brands at Sephora. There are three factors in this dataset that can determine the status (positive or negative) of a product: `review_score`, `n_of_loves` and `n_of_reviews`. 
+
+We first grouped the dataset in-terms of brand and then plotted the reviews-to-loves ratio against the brand. 
+```{r}
+plot_4<-data1%>%
+  group_by(brand)%>%
+  summarize(best_reviewed= min(reviews_to_loves_ratio))%>%
+  top_n(5)
+plot_4
+```
+
+
+```{r}
+
+plot_4<-data1%>%
+  group_by(brand)%>%
+  summarize(best_reviewed= max(reviews_to_loves_ratio))%>%
+  top_n(5) %>% 
+  ggplot(aes(x = brand, y = best_reviewed, color=brand)) + 
+  xlab("Review scores") + 
+  ylab("Brand Names") + 
+  ggtitle("MOST EFFECTIVE BRANDS AT SEPHORA")+
+  geom_point(shape= 2)+geom_segment(aes(xend = brand, yend = 0), size = 1.2)
+
+plot_4
+
+```
+From the above graph (plot_4), it can be inferred that "Lancome" is the most effective brand, shortly followed by "Lancer". "Acqua Di Parma" is the least effective brand with a review score of 1.92. 
+
+
+
+****
+Now, we will perform some brand-wise analysis.
+
+
+```{r}
+#this function gives a list of all the unique brands in this Dataset.
+unique(data$brand)
+```
+There are 141 different brands in this dataset. Let us check for brands that have the most number of products.
+
+
+Before that, let us check to see how many duplicate values still remain.
+```{r}
+sum(duplicated(data1))
+```
+We are good to go, since there are no duplicate values.
+```{r}
+brand_freq<-table(data1$brand)
+brand_freq<-as.data.frame(brand_freq) %>% rename(brand_name = Var1) %>% arrange(desc(Freq))
+brand_freq
+```
+
+The above table shows that "Clinique" brand has the highest number of products out in the Sephora retail space.
+Now, we make a plot of this data. 
+```{r}
+#converting the column "brand_name" into a character in order to plot it
+brand_freq$brand_name<-as.character(brand_freq$brand_name)
+
+```
+
+
+
+```{r}
+#identifying the class of brand_name
+class(brand_freq$brand_name)
+
+```
+
+```{r}
+#arranging brand_freq in terms of descending order of Frequency 
+desc_df<-brand_freq %>% arrange(desc(Freq))
+```
+
+```{r, warning=TRUE}
+#plotting a graph of the brands that have the most variety of products
+plot5<-desc_df %>% 
+  ggplot(aes(x=reorder(brand_name,- Freq), y=Freq)) +
+  geom_point(color="light blue") + 
+  geom_segment(aes(xend = brand_name, yend = 0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 5))+
+  xlab("Brand Name") + ylab("Frequency")+ggtitle("NUMBER OF PRODUCTS SOLD BY DIFFERENT BRANDS")
+plot5
+```
+
+
+As we can see from the above plot, Clinique is closely folled by the brands Murad and Sheseido. This means that these three brands have the most diverse number of products in the market. On the other hand, brands like Yves Saint Laurent, rms beauty and Marc Jacobs Beauty have the least variety of products on sale.
+
+
+**CONCLUSIONS**
+
+1. We used some data manipulation functions like group_by() and summarize() to perform basic analysis and group similar data points in this Data set
+
+2. We tried to analyse some of the trends at Sephora. According to our analysis:
+  
+  a) GLAMGLOW is the most loved brand with over 200000 likes
+  b) AMOREPACIFIC is the brand which has the costliest line of products at Sephora
+  c) LANCOME has the best reviews to loves ratio. 
+  d) RMS BEAUTY has the cheapest products available at sephora. 
+  e) CLINIQUE has the msot diverse product range
+
+The only costly brand at Sephora that has a good product diversity and is effective is **Lancer**.  
+
+**POSSIBLE BIAS**
+
+1. Assuming the reviews talk for everyone–the reviews may probably be extremely biased and cater towards only one specific part of the demographic (particularly in terms of skin texture and color). For instance, the brand Tarte recently issued a public apology after being accused of a shade range that mostly leaned towards caucasian skin types. 
+
+2. People assume that costly brands perform better but our inferences show otherwise. Lancer is the only brand that fits this assumption and all the other costly brands, in fact, have neither a diverse line of products, nor great "loves" and "reviews".
+
+
+```
+
+
+
+```{r}
+#producing session information about R, the OS and attached or loaded packages
+sI <- sessionInfo()
+sI
+  print(sI, RNG = TRUE, locale = FALSE)
+toLatex(sI, locale = FALSE) 
+```
+
+
+
+```
